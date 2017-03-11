@@ -74,11 +74,8 @@ class Fractal:
         return [self.mandelbrot_fn(*self.map_coords(x, y), self.max_iterations) for y in range(self.height) for x in range(self.width)]
 
     def render(self):
-        raw = np.uint8(self.mandelbrot())
+        raw = self.mandelbrot()
         pixels = [raw[l:l + self.width] for l in range(0, len(raw), self.width)];
-
-        pixels[int(self.height / 2)][int(self.width / 2)] = np.uint8([255, 0, 0])
-
         return PIL.Image.fromarray(np.uint8(pixels))
 
     def display(self):
