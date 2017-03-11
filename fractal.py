@@ -33,7 +33,7 @@ class Fractal:
         self.max_iterations = iterations
         self.pos = [0.0, 0.0]
         self.scale = 1
-        self.paspread = 1
+        self.paspread = 2
 
     def move(self, x, y):
         self.pos[0] += x * self.scale
@@ -50,36 +50,31 @@ class Fractal:
         cy = self.pallet[y % len(self.pallet)]
         return [int(self.interpolate_number(i, cx[n], cy[n])) for n in range(3)]
 
-    def linearize(self, zn):
-        return abs(math.log(abs(math.log(abs(zn)) / self.ln2)) / self.ln2)
-
-    def mandelbrot_fn(self, x, y, mi):
-        c = complex(x, y)
-        z = complex(x, y)
-        s = self.paspread
-
-        for n in range(mi):
-            z2 = z*z + c
-
-            if z2.real * z2.real + z2.imag * z2.imag > (1 << 16):
-                return (n + 1 - self.linearize(z)) / s
-
-            z = z2
-
-        return n / s
-
     def map_coords(self, a, b):
         return (a / self.width  - 1/2) * self.scale              * 4 + self.pos[0], \
                (b / self.height - 1/2) * self.scale * self.ratio * 4 + self.pos[1]
 
-    def calculate(self):
-        return [self.mandelbrot_fn(*self.map_coords(x, y), self.max_iterations) for y in range(self.height) for x in range(self.width) ]
+    def linearize(self, zn):
+        return abs(math.log(abs(math.log(abs(zn)) / self.ln2)) / self.ln2)
 
-    def apply_pallet(self, calculated):
-        return [self.interpolate_pallet(c % 1, int(c), int(c + 1)) for c in calculated]
+    def mandelbrot_fn(self, x, y, mi):
+        c = z = complex(x, y)
+        it = mi
+
+        for n in range(mi):
+            z = z*z + c
+
+            if z.real * z.real + z.imag * z.imag > (1 << 16):
+                it = (n + 1 - self.linearize(z)) / self.paspread
+                break
+
+        return self.interpolate_pallet(it % 1, int(it), int(it + 1))
+
+    def mandelbrot(self):
+        return [self.mandelbrot_fn(*self.map_coords(x, y), self.max_iterations) for y in range(self.height) for x in range(self.width)]
 
     def render(self):
-        raw = np.uint8(self.apply_pallet(self.calculate()))
+        raw = np.uint8(self.mandelbrot())
         pixels = [raw[l:l + self.width] for l in range(0, len(raw), self.width)];
 
         pixels[int(self.height / 2)][int(self.width / 2)] = np.uint8([255, 0, 0])
@@ -93,5 +88,5 @@ class Fractal:
         IPython.display.display(img)
 
 if __name__ == '__main__':
-    f = Fractal(460, 320, 200)
+    f = Fractal(320, 260)
     f.display()
