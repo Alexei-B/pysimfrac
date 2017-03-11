@@ -8,7 +8,6 @@ import numpy as np
 import math
 import io
 import PIL.Image
-import IPython.display
 
 class Fractal:
     """Renders Pillow images of fractals."""
@@ -96,14 +95,3 @@ class Fractal:
         raw = self.mandelbrot()
         pixels = [raw[l:l + self.width] for l in range(0, len(raw), self.width)];
         return PIL.Image.fromarray(np.uint8(pixels))
-
-    def display(self):
-        """Render and displays the fractal into jupyter (ipython) for jupyter notebooks or hydrogen."""
-        buf = io.BytesIO()
-        self.render().save(buf, 'PNG')
-        img = IPython.display.Image(data = buf.getvalue())
-        IPython.display.display(img)
-
-if __name__ == '__main__':
-    f = Fractal()
-    f.display()
