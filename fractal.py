@@ -6,8 +6,6 @@ import IPython.display
 
 class Fractal:
 
-    ln2 = abs(math.log(2))
-
     pallet = [
         [0x00, 0x2b, 0x36],
         [0x07, 0x36, 0x42],
@@ -54,8 +52,8 @@ class Fractal:
         return (a / self.width  - 1/2) * self.scale              * 4 + self.pos[0], \
                (b / self.height - 1/2) * self.scale * self.ratio * 4 + self.pos[1]
 
-    def linearize(self, zn):
-        return abs(math.log(abs(math.log(abs(zn)) / self.ln2)) / self.ln2)
+    def normalize(self, zn):
+        return abs(math.log(abs(math.log(abs(zn))), 2))
 
     def mandelbrot_fn(self, x, y, mi):
         c = z = complex(x, y)
@@ -65,7 +63,7 @@ class Fractal:
             z = z*z + c
 
             if z.real * z.real + z.imag * z.imag > (1 << 16):
-                it = (n + 1 - self.linearize(z)) / self.paspread
+                it = (n + 1 - self.normalize(z)) / self.paspread
                 break
 
         return self.interpolate_pallet(it % 1, int(it), int(it + 1))
