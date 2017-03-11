@@ -6,10 +6,7 @@ import IPython.display
 
 class Fractal:
 
-    scale = 3
-    pos = [0.0, 0.0]
     ln2 = abs(math.log(2))
-    max_iterations = 100
 
     pallet = [
         [0x00, 0x2b, 0x36],
@@ -29,12 +26,14 @@ class Fractal:
         [0x00, 0x2b, 0x36]
     ]
 
-    paspread = 12
-
-    def __init__(self, width = 320, height = 240):
+    def __init__(self, width = 320, height = 240, iterations = 100):
         self.width = width
         self.height = height
-        self.ratio = width / height
+        self.ratio = height / width
+        self.max_iterations = iterations
+        self.pos = [0.0, 0.0]
+        self.scale = 1
+        self.paspread = 1
 
     def move(self, x, y):
         self.pos[0] += x * self.scale
@@ -70,18 +69,21 @@ class Fractal:
         return n / s
 
     def map_coords(self, a, b):
-        return (a / self.width - 2/3) * self.scale * self.ratio + self.pos[0], \
-               (b / self.height - 1/2) * self.scale + self.pos[1]
+        return (a / self.width  - 1/2) * self.scale              * 4 + self.pos[0], \
+               (b / self.height - 1/2) * self.scale * self.ratio * 4 + self.pos[1]
 
-    def calculate(self, max_iterations = max_iterations):
-        return [self.mandelbrot_fn(*self.map_coords(x, y), max_iterations) for y in range(self.height) for x in range(self.width) ]
+    def calculate(self):
+        return [self.mandelbrot_fn(*self.map_coords(x, y), self.max_iterations) for y in range(self.height) for x in range(self.width) ]
 
     def apply_pallet(self, calculated):
         return [self.interpolate_pallet(c % 1, int(c), int(c + 1)) for c in calculated]
 
-    def render(self, max_iterations = max_iterations):
-        raw = np.uint8(self.apply_pallet(self.calculate(max_iterations)))
+    def render(self):
+        raw = np.uint8(self.apply_pallet(self.calculate()))
         pixels = [raw[l:l + self.width] for l in range(0, len(raw), self.width)];
+
+        pixels[int(self.height / 2)][int(self.width / 2)] = np.uint8([255, 0, 0])
+
         return PIL.Image.fromarray(np.uint8(pixels))
 
     def display(self):
@@ -91,5 +93,5 @@ class Fractal:
         IPython.display.display(img)
 
 if __name__ == '__main__':
-    f = Fractal(480, 360)
+    f = Fractal(460, 320, 200)
     f.display()
